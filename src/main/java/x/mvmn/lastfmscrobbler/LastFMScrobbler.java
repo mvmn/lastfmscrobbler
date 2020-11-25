@@ -21,12 +21,24 @@ import x.mvmn.lastfmscrobbler.util.SwingUtil;
 public class LastFMScrobbler {
 
 	protected final PopupMenu popup;
+	// TODO: Make configurable
+	protected final String key = "9e89b44de1ff37c5246ad0af18406454";
+	// TODO: Make configurable
+	protected final String secret = "147320ea9b8930fe196a4231da50ada4";
 
 	public static void main(String[] args) {
 		new LastFMScrobbler();
 	}
 
 	public LastFMScrobbler() {
+		// TODO: Store configuration
+		// TODO: Configurable username/password
+		// TODO: Encrypt password
+		// TODO: Scrobbler handler - timers
+		// TODO: Scrobbler handler - submit to Last.fm
+		// TODO: Scrobbler - indicate last.fm session state
+		// TODO: Store tracks on submit fail, resubmit on startup/login
+		// TODO: Refactor spaghetti
 		Server server = new Server(33367, line -> {
 			PlayerEvent playerCommand = CommParser.parse(line);
 			System.out.println(playerCommand);
