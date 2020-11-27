@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
+import de.umass.lastfm.scrobble.ScrobbleData;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -72,6 +73,18 @@ public class TrackInfo {
 			baos.write(value.getBytes(StandardCharsets.UTF_8));
 		}
 		baos.write(0);
+	}
+
+	public ScrobbleData toScrobbleData() {
+		ScrobbleData result = new ScrobbleData();
+		result.setChosenByUser(true);
+		result.setArtist(artist);
+		result.setAlbumArtist(albumArtist);
+		result.setAlbum(album);
+		result.setTrack(title);
+		result.setDuration(duration);
+		result.setMusicBrainzId(mbid);
+		return result;
 	}
 
 	// TODO: convert to a unit test
