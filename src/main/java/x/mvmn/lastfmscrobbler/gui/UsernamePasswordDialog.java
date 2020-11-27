@@ -13,6 +13,7 @@ import javax.swing.JTextField;
 
 import x.mvmn.lastfmscrobbler.ExceptionDisplayer;
 import x.mvmn.lastfmscrobbler.util.Pair;
+import x.mvmn.lastfmscrobbler.util.SwingUtil;
 
 public class UsernamePasswordDialog extends JDialog {
 	private static final long serialVersionUID = 3943012295659417955L;
@@ -68,5 +69,6 @@ public class UsernamePasswordDialog extends JDialog {
 		pane.add(btnOk);
 		pane.add(btnCancel);
 		this.pack();
+		SwingUtil.moveToScreenCenter(this);
 	}
 }

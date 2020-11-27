@@ -1,8 +1,11 @@
 package x.mvmn.lastfmscrobbler.util;
 
 import java.awt.CheckboxMenuItem;
+import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Menu;
 import java.awt.MenuItem;
+import java.awt.Toolkit;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemListener;
 import java.util.Map;
@@ -42,5 +45,23 @@ public class SwingUtil {
 		}
 
 		return menu;
+	}
+
+	public static void moveToScreenCenter(final Component component) {
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		Dimension componentSize = component.getSize();
+		int newComponentX = screenSize.width - componentSize.width;
+		if (newComponentX >= 0) {
+			newComponentX = newComponentX / 2;
+		} else {
+			newComponentX = 0;
+		}
+		int newComponentY = screenSize.height - componentSize.height;
+		if (newComponentY >= 0) {
+			newComponentY = newComponentY / 2;
+		} else {
+			newComponentY = 0;
+		}
+		component.setLocation(newComponentX, newComponentY);
 	}
 }

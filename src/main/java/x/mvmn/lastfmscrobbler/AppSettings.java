@@ -16,6 +16,7 @@ public class AppSettings {
 	private static final String KEY_PASS = "lastfmpassword";
 	private static final String KEY_LASTFMAPIKEY = "lastfmapikey";
 	private static final String KEY_LASTFMAPISECRET = "lastfmapisecret";
+	private static final String KEY_PERCENTAGE_TO_SCROBBLE_AT = "scrobbleatpercent";
 
 	private final Preferences prefs;
 	private final KeyAndNonce keyAndNonce;
@@ -70,5 +71,20 @@ public class AppSettings {
 
 	protected Preferences getPreferences() {
 		return Preferences.userNodeForPackage(LastFMScrobbler.class);
+	}
+
+	public void setPercentageToScrobbleAt(int value) {
+		prefs.put(KEY_PERCENTAGE_TO_SCROBBLE_AT, String.valueOf(value));
+	}
+
+	public int getPercentageToScrobbleAt(int defaultVal) {
+		int result = defaultVal;
+		try {
+			result = Integer.parseInt(prefs.get(KEY_PERCENTAGE_TO_SCROBBLE_AT, String.valueOf(defaultVal)));
+		} catch (NumberFormatException nfe) {
+			nfe.printStackTrace();
+			// TODO: debug log
+		}
+		return result;
 	}
 }

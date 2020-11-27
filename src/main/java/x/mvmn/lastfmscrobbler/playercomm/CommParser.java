@@ -22,8 +22,11 @@ public class CommParser {
 				playerId = "";
 			}
 
-			return PlayerEvent.builder().eventType(eventType).playerId(playerId.trim())
-					.trackInfo(EventType.START.equals(eventType) ? getTrackInfo(paramsMap) : null).build();
+			return PlayerEvent.builder()
+					.eventType(eventType)
+					.playerId(playerId.trim())
+					.trackInfo(EventType.START.equals(eventType) ? getTrackInfo(paramsMap) : null)
+					.build();
 		} else {
 			throw new IllegalArgumentException("Bad input - doesn not match command+params format: " + input);
 		}
@@ -32,8 +35,15 @@ public class CommParser {
 
 	protected static TrackInfo getTrackInfo(Map<String, String> p) {
 		// See https://github.com/lastfm/lastfm-desktop/blob/master/lib/listener/PlayerCommandParser.cpp
-		return TrackInfo.builder().artist(p.get("a")).albumArtist(p.get("d")).title(p.get("t")).album(p.get("b")).mbid(p.get("m"))
-				.duration(Integer.parseInt(p.get("l"))).filePath(p.get("p")).build();
+		return TrackInfo.builder()
+				.artist(p.get("a"))
+				.albumArtist(p.get("d"))
+				.title(p.get("t"))
+				.album(p.get("b"))
+				.mbid(p.get("m"))
+				.duration(Integer.parseInt(p.get("l")))
+				.filePath(p.get("p"))
+				.build();
 	}
 
 	protected static Map<String, String> parseParams(String params) {

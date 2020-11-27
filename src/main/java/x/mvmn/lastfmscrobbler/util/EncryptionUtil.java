@@ -81,17 +81,4 @@ public class EncryptionUtil {
 		byte[] decryptedText = cipher.doFinal(Base64.getDecoder().decode(encryptedValue));
 		return new String(decryptedText, StandardCharsets.UTF_8);
 	}
-
-	// TODO: Convert to unit test
-	public static void main(String args[]) throws GeneralSecurityException {
-		KeyAndNonce k = generateKeyAndNonce();
-		System.out.println(Base64.getEncoder().encodeToString(k.getKey().getEncoded()));
-		System.out.println(Base64.getEncoder().encodeToString(k.getNonce()));
-		System.out.println(k.serialize());
-		k = KeyAndNonce.deserialize(k.serialize());
-		System.out.println(Base64.getEncoder().encodeToString(k.getKey().getEncoded()));
-		System.out.println(Base64.getEncoder().encodeToString(k.getNonce()));
-
-		System.out.println(decrypt(encrypt("test 123", k), k));
-	}
 }

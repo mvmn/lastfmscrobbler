@@ -20,6 +20,7 @@ public class ExceptionDisplayer implements Consumer<Throwable> {
 	}
 
 	protected void show(Throwable t) {
-		JOptionPane.showMessageDialog(null, t.getClass().getCanonicalName() + " " + t.getMessage(), "Error occurred", JOptionPane.ERROR_MESSAGE);
+		JOptionPane.showMessageDialog(null, t.getClass().getCanonicalName() + " " + t.getMessage(), "Error occurred",
+				JOptionPane.ERROR_MESSAGE);
 	}
 }
