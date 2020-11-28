@@ -26,7 +26,7 @@ public class Server {
 		if (serverSocket == null) {
 			serverSocket = new ServerSocket(port);
 			new Thread(() -> {
-				while (!serverSocket.isClosed()) {
+				while (serverSocket != null && !serverSocket.isClosed()) {
 					try {
 						Socket socket = serverSocket.accept();
 						new Thread(() -> handleConnection(socket)).start();
