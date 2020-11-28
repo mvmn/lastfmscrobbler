@@ -6,6 +6,7 @@ import java.awt.PopupMenu;
 import java.awt.SystemTray;
 import java.awt.TrayIcon;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.Arrays;
@@ -13,11 +14,13 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
@@ -51,8 +54,13 @@ public class LastFMScrobbler {
 	private final AtomicReference<Session> currentSessionRef = new AtomicReference<>();
 	private final Map<String, Pair<TrackLogEntry, PlayTime>> playingNowPerPlayer = Collections.synchronizedMap(new HashMap<>());
 	private volatile int percentageToScrobbleAt = 50;
+	private final QueueService queueService;
 
 	static {
+		File dataFolder = new File(new File(System.getProperty("user.home")), ".mvmnlastfm");
+		if (!dataFolder.exists()) {
+			dataFolder.mkdir();
+		}
 		System.setProperty("apple.awt.UIElement", "true");
 		Logger.getLogger("de.umass.lastfm.Caller").setLevel(Level.WARNING);
 		// TODO: Logger
@@ -67,7 +75,7 @@ public class LastFMScrobbler {
 
 			Server server = new Server(33367, line -> LastFMScrobbler.getInstance().processPlayerEvent(line));
 
-			INSTANCE = new LastFMScrobbler(prefs, server, imgDisconnected, imgConnected);
+			INSTANCE = new LastFMScrobbler(dataFolder, prefs, server, imgDisconnected, imgConnected);
 		} catch (Exception e) {
 			ExceptionDisplayer.INSTANCE.accept(e);
 			throw new RuntimeException(e);
@@ -100,6 +108,51 @@ public class LastFMScrobbler {
 		});
 		submitThread.setDaemon(true);
 		submitThread.start();
+
+		Thread submitQueuedThread = new Thread(() -> {
+			boolean go = true;
+			while (go) {
+				processQueued();
+				try {
+					Thread.sleep(60000L);
+				} catch (InterruptedException e) {
+					Thread.interrupted();
+					go = false;
+				}
+			}
+		});
+		submitQueuedThread.setDaemon(true);
+		submitQueuedThread.start();
+	}
+
+	public void processQueued() {
+		try {
+			Session session = currentSessionRef.get();
+			if (session == null) {
+				connect();
+				session = currentSessionRef.get();
+			}
+			if (session != null) {
+				Session finalSession = session;
+				for (int i = 0; i < 10; i++) {
+					queueService.processQueuedTracks(tracks -> {
+						Optional<ScrobbleResult> failures = Track
+								.scrobble(tracks.stream().map(TrackLogEntry::toScrobbleData).collect(Collectors.toList()), finalSession)
+								.stream()
+								.filter(res -> !res.isSuccessful())
+								.peek(res -> System.out.println("Scrobbling failed: " + res.getErrorMessage()))
+								.findAny();
+						if (failures.isPresent()) {
+							// TODO: Use specific exception and don't log it
+							throw new RuntimeException("Failed scrobbles - retry processing");
+						}
+					}, 1);
+				}
+			}
+		} catch (Exception e) {
+			// TODO: log
+			e.printStackTrace();
+		}
 	}
 
 	public synchronized void connect() {
@@ -146,7 +199,8 @@ public class LastFMScrobbler {
 		return INSTANCE;
 	}
 
-	public LastFMScrobbler(AppSettings prefs, Server server, BufferedImage imgDisconnected, BufferedImage imgConnected) {
+	public LastFMScrobbler(File dataFolder, AppSettings prefs, Server server, BufferedImage imgDisconnected, BufferedImage imgConnected) {
+		this.queueService = new QueueService(dataFolder);
 		this.prefs = prefs;
 		this.server = server;
 		this.imgDisconnected = imgDisconnected;
@@ -364,6 +418,10 @@ public class LastFMScrobbler {
 
 	private void attemptScrobble(TrackLogEntry trackData) {
 		Session session = currentSessionRef.get();
+		if (session == null) {
+			connect();
+			session = currentSessionRef.get();
+		}
 		if (session != null) {
 			try {
 				System.out.println("Scrobbling " + trackData);
@@ -372,8 +430,8 @@ public class LastFMScrobbler {
 					setConnected(false);
 					setStatus("Scrobbling failed");
 					// TODO: log
-					// TODO: queue for scrobbling
 					System.out.println("Scrobble error: " + scrobbleResult.getErrorMessage());
+					queueForResubmission(trackData);
 				} else {
 					setConnected(true);
 					setStatus("Connected");
@@ -382,12 +440,16 @@ public class LastFMScrobbler {
 				setConnected(false);
 				setStatus("Scrobbling failed");
 				// TODO: log
-				// TODO: queue for scrobbling
 				e.printStackTrace();
+				queueForResubmission(trackData);
 			}
 		} else {
-			// TODO: queue for scrobbling
+			queueForResubmission(trackData);
 		}
+	}
+
+	private void queueForResubmission(TrackLogEntry trackData) {
+		queueService.queueTrack(trackData);
 	}
 
 	private String toNowPlayingDisplay(TrackInfo trackInfo) {

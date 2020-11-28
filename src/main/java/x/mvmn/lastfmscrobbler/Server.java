@@ -26,19 +26,19 @@ public class Server {
 		if (serverSocket == null) {
 			serverSocket = new ServerSocket(port);
 			new Thread(() -> {
-				try {
-					while (!serverSocket.isClosed()) {
+				while (!serverSocket.isClosed()) {
+					try {
 						Socket socket = serverSocket.accept();
 						new Thread(() -> handleConnection(socket)).start();
-					}
-				} catch (Exception e) {
-					if (!e.getMessage().contains("Socket closed")) {
-						e.printStackTrace();
+					} catch (Exception e) {
+						if (!e.getMessage().contains("Socket closed")) {
+							e.printStackTrace();
+						}
 					}
 				}
 			}).start();
 		} else {
-			throw new IllegalStateException();
+			throw new IllegalStateException("Server already started");
 		}
 	}
 

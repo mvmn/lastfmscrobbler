@@ -17,7 +17,7 @@ import x.mvmn.lastfmscrobbler.playercomm.TrackInfo;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class TrackLogEntry extends TrackInfo {
-	public static final int END_OF_ENTRY_MARKER = 255;
+	public static final int END_OF_ENTRY_MARKER = '\n';
 
 	protected final Integer timestamp;
 
